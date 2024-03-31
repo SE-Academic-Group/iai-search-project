@@ -1,0 +1,19 @@
+
+# canvas = tk.Canvas(right_frame, bg="white", width=400, height=400)
+# canvas.pack(fill=tk.BOTH, expand=False)
+# draw_chessboard(canvas, 28, 28, 400, 400)
+
+
+def draw_chessboard(canvas, rows, cols, width, height):
+    cell_width = width / cols
+    cell_height = height / rows
+    cell_size = min(cell_width, cell_height)
+
+    for row in range(rows):
+        for col in range(cols):
+            color_index = (row + col) % 2
+            x1 = col * cell_size
+            y1 = row * cell_size
+            x2 = x1 + cell_size
+            y2 = y1 + cell_size
+            canvas.create_rectangle(x1, y1, x2, y2, fill=colors[color_index], outline="")
