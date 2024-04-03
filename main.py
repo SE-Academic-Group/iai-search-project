@@ -21,6 +21,16 @@ MATRIX_CODE = {
     "obstacle_vertex": 3,
     "empty": 4,
     "visited": 5,
+    "path": 6,
+}
+MATRIX_CODE_COLORS = {
+    "start": "#0ea5e9",
+    "goal": "orangered",
+    "obstacle": "lightgrey",
+    "obstacle_vertex": "grey",
+    "empty": "white",
+    "visited": "lightblue",
+    "path": "lightgreen"
 }
 FAVICON_PATH = "favicon.ico"
 WINDOW_TITLE = "CSC14003 - Introduction to Artificial Intelligence - Search Project"
@@ -38,9 +48,8 @@ class SearchBoard:
     def __init__(self, canvas) -> None:
         self.canvas = canvas
         self.matrix = [[]]
-        self.archived_matrix = [[]]
 
-    def setCellValue(self, x, y, value) -> None:
+    def setCellValue(self, x: int, y: int, value: int) -> None:
         self.matrix[y][x] = value
 
     def read_input_file(self, file_path) -> None:
@@ -52,6 +61,8 @@ class SearchBoard:
             sx, sy, gx, gy = map(int, file.readline().split(","))
             self.setCellValue(sx, sy, MATRIX_CODE["start"])
             self.setCellValue(gx, gy, MATRIX_CODE["goal"])
+            self.start_point = (sx, sy)
+            self.goal_point = (gx, gy)
 
             no_obstacles = int(file.readline())
 
@@ -70,9 +81,7 @@ class SearchBoard:
 
                 self.draw_obstacle_from_points(convex_hull_points)
 
-            self.archived_matrix = self.matrix
-
-    def draw_obstacle_from_points(self, points) -> None:
+    def draw_obstacle_from_points(self, points: list[tuple[int, int]]) -> None:
         length = len(points)
 
         for x, y in points:
@@ -95,7 +104,7 @@ class SearchBoard:
 
                 self.setCellValue(x, y, MATRIX_CODE["obstacle"])
 
-    def draw_search_board(self):
+    def draw_search_board(self) -> None:
         canvas, matrix = self.canvas, self.matrix
         m, n = self.m, self.n
 
@@ -112,19 +121,9 @@ class SearchBoard:
         for i in range(m):
             for j in range(n):
                 code = matrix[i][j]
-
-                if code == MATRIX_CODE["start"]:
-                    color = "#0ea5e9"
-                elif code == MATRIX_CODE["goal"]:
-                    color = "orangered"
-                elif code == MATRIX_CODE["obstacle"]:
-                    color = "lightgrey"
-                elif code == MATRIX_CODE["obstacle_vertex"]:
-                    color = "grey"
-                elif code == MATRIX_CODE["visited"]:
-                    color = "lightblue"
-                else: # empty
-                    color = "white"
+                color = MATRIX_CODE_COLORS[
+                        list(MATRIX_CODE.keys())[list(MATRIX_CODE.values()).index(code)]
+                    ]
 
                 i = i + 1
                 j = j + 1
@@ -141,32 +140,63 @@ class SearchBoard:
 
         root.update_idletasks()
 
-    def start(self):
+    def start(self) -> None:
         self.read_input_file(INPUT_FILE_PATH)
         self.draw_search_board()
 
-    def dfs():
+    def dfs() -> None:
         pass
 
-    def gbfs():
+    def gbfs() -> None:
         pass
 
-    def a_star():
+    def a_star() -> None:
         pass
 
-    def draw_progress():
-        pass
+    def draw_progress(self, progress: list[tuple[int, int]]) -> None:
+        for x, y in progress:
+            self.setCellValue(x, y, MATRIX_CODE["visited"])
+            self.draw_search_board()
 
-    def draw_path():
-        pass
+    def draw_path(self, path: list[tuple[int, int]]) -> None:
+        for x, y in path:
+            self.setCellValue(x, y, MATRIX_CODE["path"])
+            self.draw_search_board()
 
+        cell_size = SEARCH_BOARD_SIZE // max(self.m + 1, self.n + 1)
+
+        line_path = [self.start_point] + path + [self.goal_point]
+
+        for i in range(len(line_path) - 1):
+            x1, y1 = line_path[i]
+            x2, y2 = line_path[i + 1]
+
+            self.canvas.create_line(
+                (x1 + 1) * cell_size + cell_size // 2,
+                (y1 + 1) * cell_size + cell_size // 2,
+                (x2 + 1) * cell_size + cell_size // 2,
+                (y2 + 1) * cell_size + cell_size // 2,
+                fill=MATRIX_CODE_COLORS['goal'],
+                width=3
+            )
 
 def start_algorithm():
-    pass
+    # This is for testing purpose
+    path = [
+                (3,2), (4,2), (5,3), (6,3), (7,3), (8, 3), (9,3), (10,3),
+                (10, 4), (10, 5), (10, 6), (10, 7), (10, 8), (10, 9), (10, 10),
+                (10, 11), (11, 11), (12, 11), (13, 11), (14, 11), (14, 12), (14, 13),
+                (14, 14), (14, 15), (14, 16), (15, 16)
+        ]
+
+    search_board.start()
+    search_board.draw_progress(path)
+    search_board.canvas.after(100, search_board.draw_path(path))
+
+    # TODO: Show result (cost of path, number of visited nodes, etc.) after performing the search algorithm
 
 def on_alg_selected():
     print(selected_alg_idx.get())
-
 
 # Global Variables
 selected_alg_idx = IntVar()
@@ -217,13 +247,28 @@ for i, alg in enumerate(ALGORITHMS):
     if i == 0:
         alg_radio.select()
 
-
 # Right Frame - Search Performance
 right_frame.pack(side=RIGHT, fill=BOTH, expand=True)
 
 Label(right_frame, text="Search Performance", font=("Dank Mono", 12, "bold")).pack(
-    pady=(0, 20)
+    pady=(0, 8)
 )
+
+annotation_frame = Frame(right_frame, bg="white")
+annotations = [
+    ("Start", MATRIX_CODE_COLORS['start'], 'white'),
+    ("Goal", MATRIX_CODE_COLORS['goal'], 'white'),
+    ("Obstacle", MATRIX_CODE_COLORS['obstacle'], None),
+    ("Obstacle Vertex", MATRIX_CODE_COLORS['obstacle_vertex'], 'white'),
+    ("Visited", MATRIX_CODE_COLORS['visited'], None),
+    ("Path", MATRIX_CODE_COLORS['path'], None)
+]
+
+for i, (text, bg, foreground) in enumerate(annotations):
+    Label(annotation_frame, text=text, bg=bg, foreground=foreground).grid(
+        row=0, column=i, padx=(0, 8), pady=(0, 4)
+    )
+annotation_frame.pack(pady=12)
 
 search_board_canvas.pack()
 start_button = Button(
@@ -233,7 +278,7 @@ start_button = Button(
     command=start_algorithm,
     activebackground="lightblue",
 )
-start_button.pack(pady=(20, 0))
+start_button.pack(pady=(8, 0))
 
 search_board.start()
 
