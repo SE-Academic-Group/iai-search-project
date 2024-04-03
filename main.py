@@ -2,6 +2,26 @@ from tkinter import *
 from time import sleep
 from scipy.spatial import ConvexHull
 
+def bresenham(x0, y0, x1, y1):
+    dx = abs(x1 - x0)
+    dy = abs(y1 - y0)
+    sx = -1 if x0 > x1 else 1
+    sy = -1 if y0 > y1 else 1
+    err = dx - dy
+    # points = [(x0, y0)]
+    points = []
+    while x0 != x1 or y0 != y1:
+        e2 = err * 2
+        if e2 > -dy:
+            err -= dy
+            x0 += sx
+        if e2 < dx:
+            err += dx
+            y0 += sy
+        points.append((x0, y0))
+    points.pop(len(points) - 1)
+    return points
+
 GROUP_MEMBERS = [
     "21120502 - Tran Duc Minh",
     "21120515 - Tran Phuoc Nhan",
@@ -43,6 +63,7 @@ root.iconbitmap(FAVICON_PATH)
 root.geometry("+0+0")
 root.resizable(False, False)
 root.configure(bg="white")
+
 
 class SearchBoard:
     def __init__(self, canvas) -> None:
@@ -90,19 +111,10 @@ class SearchBoard:
         for i in range(length):
             x1, y1 = points[i]
             x2, y2 = points[(i + 1) % length]
-            dx, dy = max(0, abs(x2 - x1) - 1), max(0, abs(y2 - y1) - 1)
-
-            for j in range(1, max(dx, dy) + 1):
-                if (x1 <= x2 and y1 <= y2):
-                    x, y = min(x1 + j, x2), min(y1 + j, y2)
-                elif (x1 <= x2 and y1 > y2):
-                    x, y = min(x1 + j, x2), max(y1 - j, y2)
-                elif (x1 > x2 and y1 <= y2):
-                    x, y = max(x1 - j, x2), min(y1 + j, y2)
-                else:
-                    x, y = max(x1 - j, x2), max(y1 - j, y2)
-
-                self.setCellValue(x, y, MATRIX_CODE["obstacle"])
+            line_points = bresenham(x1, y1, x2, y2)
+            print(line_points)
+            for point in line_points:
+                self.setCellValue(point[0], point[1], MATRIX_CODE["obstacle"])
 
     def draw_search_board(self) -> None:
         canvas, matrix = self.canvas, self.matrix
@@ -122,8 +134,8 @@ class SearchBoard:
             for j in range(n):
                 code = matrix[i][j]
                 color = MATRIX_CODE_COLORS[
-                        list(MATRIX_CODE.keys())[list(MATRIX_CODE.values()).index(code)]
-                    ]
+                    list(MATRIX_CODE.keys())[list(MATRIX_CODE.values()).index(code)]
+                ]
 
                 i = i + 1
                 j = j + 1
@@ -180,14 +192,15 @@ class SearchBoard:
                 width=3
             )
 
+
 def start_algorithm():
     # This is for testing purpose
     path = [
-                (3,2), (4,2), (5,3), (6,3), (7,3), (8, 3), (9,3), (10,3),
-                (10, 4), (10, 5), (10, 6), (10, 7), (10, 8), (10, 9), (10, 10),
-                (10, 11), (11, 11), (12, 11), (13, 11), (14, 11), (14, 12), (14, 13),
-                (14, 14), (14, 15), (14, 16), (15, 16)
-        ]
+        (3, 2), (4, 2), (5, 3), (6, 3), (7, 3), (8, 3), (9, 3), (10, 3),
+        (10, 4), (10, 5), (10, 6), (10, 7), (10, 8), (10, 9), (10, 10),
+        (10, 11), (11, 11), (12, 11), (13, 11), (14, 11), (14, 12), (14, 13),
+        (14, 14), (14, 15), (14, 16), (15, 16)
+    ]
 
     search_board.start()
     search_board.draw_progress(path)
@@ -195,8 +208,10 @@ def start_algorithm():
 
     # TODO: Show result (cost of path, number of visited nodes, etc.) after performing the search algorithm
 
+
 def on_alg_selected():
     print(selected_alg_idx.get())
+
 
 # Global Variables
 selected_alg_idx = IntVar()
