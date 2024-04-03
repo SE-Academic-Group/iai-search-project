@@ -95,8 +95,6 @@ class SearchBoard:
 
                 self.setCellValue(x, y, MATRIX_CODE["obstacle"])
 
-
-
     def draw_search_board(self):
         canvas, matrix = self.canvas, self.matrix
         m, n = self.m, self.n
@@ -125,7 +123,7 @@ class SearchBoard:
                     color = "grey"
                 elif code == MATRIX_CODE["visited"]:
                     color = "lightblue"
-                else:
+                else: # empty
                     color = "white"
 
                 i = i + 1
@@ -162,46 +160,6 @@ class SearchBoard:
     def draw_path():
         pass
 
-def draw_search_board(matrix):
-    canvas = search_board_canvas
-    canvas.delete("all")
-    m, n = len(matrix), len(matrix[0])
-    cell_size = SEARCH_BOARD_SIZE // max(m + 1, n + 1)
-
-    for i in range(m):
-        canvas.create_text(6, (i + 1.5) * cell_size, text=f" {i}", anchor="w")
-    for j in range(n):
-        canvas.create_text((j + 1.5) * cell_size, 6, text=f" {j}", anchor="n")
-
-    for i in range(m):
-        for j in range(n):
-            code = matrix[i][j]
-
-            if code == MATRIX_CODE["start"]:
-                color = "#0ea5e9"
-            elif code == MATRIX_CODE["goal"]:
-                color = "orangered"
-            elif code == MATRIX_CODE["obstacle"]:
-                color = "lightgrey"
-            elif code == MATRIX_CODE["visited"]:
-                color = "lightblue"
-            else:
-                color = "white"
-
-            i = i + 1
-            j = j + 1
-            canvas.create_rectangle(
-                j * cell_size,
-                i * cell_size,
-                (j + 1) * cell_size,
-                (i + 1) * cell_size,
-                fill=color,
-                outline="black",
-            )
-            i = i - 1
-            j = j - 1
-
-    root.update_idletasks()
 
 def start_algorithm():
     pass
