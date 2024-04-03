@@ -72,7 +72,7 @@ class SearchBoard:
 
             self.archived_matrix = self.matrix
 
-    def draw_obstacle_from_points(self, points):
+    def draw_obstacle_from_points(self, points) -> None:
         length = len(points)
 
         for x, y in points:
