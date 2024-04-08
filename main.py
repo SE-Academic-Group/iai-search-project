@@ -36,7 +36,7 @@ MATRIX_CODE_COLORS = {
 }
 FAVICON_PATH = "favicon.ico"
 WINDOW_TITLE = "CSC14003 - Introduction to Artificial Intelligence - Search Project"
-SEARCH_BOARD_SIZE = 650
+SEARCH_BOARD_SIZE = 600
 INPUT_FILE_PATH = "input.txt"
 
 root = Tk()
@@ -77,7 +77,7 @@ class SearchBoard:
 
     def read_input_file(self, file_path) -> None:
         with open(file_path, "r") as file:
-            m, n = map(int, file.readline().split(","))
+            n, m = map(int, file.readline().split(","))
             self.m, self.n = m, n
             self.matrix = [[MATRIX_CODE["empty"]] * n for _ in range(m)]
 
@@ -114,7 +114,7 @@ class SearchBoard:
             x1, y1 = points[i]
             x2, y2 = points[(i + 1) % length]
             line_points = bresenham(x1, y1, x2, y2)
-            print(line_points)
+
             for point in line_points:
                 self.setCellValue(point[0], point[1], MATRIX_CODE["obstacle"])
 
@@ -311,30 +311,36 @@ class SearchBoard:
 
 
 def start_algorithm():
-    # This is for testing purpose
-    # path = [
-    #     (3, 2), (4, 2), (5, 3), (6, 3), (7, 3), (8, 3), (9, 3), (10, 3),
-    #     (10, 4), (10, 5), (10, 6), (10, 7), (10, 8), (10, 9), (10, 10),
-    #     (10, 11), (11, 11), (12, 11), (13, 11), (14, 11), (14, 12), (14, 13),
-    #     (14, 14), (14, 15), (14, 16), (15, 16)
-    # ]
+    algo_map = {
+        0: search_board.bfs,
+        1: search_board.gbfs,
+        2: search_board.a_star
+    }
+
+    algo_func = algo_map[selected_alg_idx.get()]
 
     search_board.start()
-    # (path, cost, visited) = search_board.bfs();
-    (path, cost, visited) = search_board.gbfs();
-    print("Path found")
-    print(path)
-    if path is None:
-        return
-    search_board.canvas.after(100, search_board.draw_path(path))
-    print(f"Cost of path: {cost}")
-    print(f"Number of visited nodes: {visited}")
+    (path, cost, visited) = algo_func();
 
-    # TODO: Show result (cost of path, number of visited nodes, etc.) after performing the search algorithm
+    search_board.canvas.after(100, search_board.draw_path(path))
+
+    if path is None:
+        no_path_label.pack(pady=(20, 8))
+        return
+
+    result.pack(pady=(20, 8))
+    cost_label.config(text=f"Cost of the path: {cost}")
+    visited_label.config(text=f"Number of visited nodes: {visited}")
+    cost_label.pack(pady=(0, 8))
+    visited_label.pack(pady=(0, 8))
 
 
 def on_alg_selected():
-    print(selected_alg_idx.get())
+    search_board.start()
+    result.forget()
+    cost_label.forget()
+    visited_label.forget()
+    no_path_label.forget()
 
 
 # Global Variables
@@ -342,6 +348,10 @@ selected_alg_idx = IntVar()
 left_frame = Frame(root, pady=20, padx=20, bg="lightgreen")
 right_frame = Frame(root, pady=20, padx=40, bg="white")
 result = Label(left_frame, text="Result", font="arial 14")
+cost_label = Label(left_frame, text="Cost: ", font="arial 12")
+visited_label = Label(left_frame, text="Visited: ", font="arial 12")
+alg_name_label = Label(left_frame, text="Algorithm: ", font="arial 12")
+no_path_label = Label(left_frame, text="No path found", font="arial 12")
 search_board_canvas = Canvas(
     right_frame,
     bg="white",
