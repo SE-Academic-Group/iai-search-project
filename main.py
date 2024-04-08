@@ -324,11 +324,12 @@ def start_algorithm():
 
     search_board.canvas.after(100, search_board.draw_path(path))
 
+    result.pack(pady=(20, 8))
+
     if path is None:
-        no_path_label.pack(pady=(20, 8))
+        no_path_label.pack()
         return
 
-    result.pack(pady=(20, 8))
     cost_label.config(text=f"Cost of the path: {cost}")
     visited_label.config(text=f"Number of visited nodes: {visited}")
     cost_label.pack(pady=(0, 8))
@@ -351,7 +352,7 @@ result = Label(left_frame, text="Result", font="arial 14")
 cost_label = Label(left_frame, text="Cost: ", font="arial 12")
 visited_label = Label(left_frame, text="Visited: ", font="arial 12")
 alg_name_label = Label(left_frame, text="Algorithm: ", font="arial 12")
-no_path_label = Label(left_frame, text="No path found", font="arial 12")
+no_path_label = Label(left_frame, text="No path found", font="arial 12", foreground="red")
 search_board_canvas = Canvas(
     right_frame,
     bg="white",
