@@ -26,7 +26,11 @@ MATRIX_CODE = {
     "path": 6,
     "edge": 7
 }
-BLOCK_LIST = [MATRIX_CODE["obstacle"], MATRIX_CODE["obstacle_vertex"], MATRIX_CODE['edge']]
+BLOCK_LIST = [
+    MATRIX_CODE["obstacle"],
+    MATRIX_CODE["obstacle_vertex"],
+    MATRIX_CODE['edge']
+    ]
 MATRIX_CODE_COLORS = {
     "start": "#0ea5e9",
     "goal": "orangered",
@@ -85,6 +89,7 @@ class SearchBoard:
             n += 1
             self.m, self.n = m, n
             self.matrix = [[MATRIX_CODE["empty"]] * n for _ in range(m)]
+            self.cell_size = SEARCH_BOARD_SIZE // max(m + 1, n + 1)
 
             sx, sy, gx, gy = map(int, file.readline().split(","))
             self.setCellValue(sx, sy, MATRIX_CODE["start"])
@@ -115,9 +120,9 @@ class SearchBoard:
                 hull_point_indices = hull.vertices
                 convex_hull_points = [coors_points[i] for i in hull_point_indices]
 
-                self.draw_obstacle_from_points(convex_hull_points)
+                self.set_obstacle_points(convex_hull_points)
 
-    def draw_obstacle_from_points(self, points: list[tuple[int, int]]) -> None:
+    def set_obstacle_points(self, points: list[tuple[int, int]]) -> None:
         length = len(points)
 
         for x, y in points:
@@ -137,7 +142,7 @@ class SearchBoard:
 
         canvas.delete("all")
 
-        cell_size = SEARCH_BOARD_SIZE // max(m + 1, n + 1)
+        cell_size = self.cell_size
         offset = 0
 
         for i in range(m):
@@ -152,24 +157,20 @@ class SearchBoard:
                     list(MATRIX_CODE.keys())[list(MATRIX_CODE.values()).index(code)]
                 ]
 
-                i = i + 1
-                j = j + 1
                 canvas.create_rectangle(
-                    j * cell_size,
-                    i * cell_size,
                     (j + 1) * cell_size,
                     (i + 1) * cell_size,
+                    (j + 2) * cell_size,
+                    (i + 2) * cell_size,
                     fill=color,
                     outline="black",
                 )
-                i = i - 1
-                j = j - 1
 
         root.update_idletasks()
 
     def start(self) -> None:
         self.read_input_file(INPUT_FILE_PATH)
-        self.draw_search_board()
+        self.canvas.after(0, self.draw_search_board())
 
     # Check if a cell is within the table
     def isInTable(self, x, y):
@@ -208,7 +209,7 @@ class SearchBoard:
                         visited.add((nx, ny)) # Mark next cell as visited
                         parent[(nx, ny)] = (x, y)  # Mark current cell as parent
 
-                        # Visualize progress
+                        # # Visualize progress
                         self.draw_progress([(nx, ny)])
 
                         # Check if goal is reached
@@ -295,14 +296,14 @@ class SearchBoard:
     def draw_progress(self, progress: list[tuple[int, int]]) -> None:
         for x, y in progress:
             self.setCellValue(x, y, MATRIX_CODE["visited"])
-            self.draw_search_board()
+            self.canvas.after(0, self.draw_search_board())
 
     def draw_path(self, path: list[tuple[int, int]]) -> None:
+        cell_size = self.cell_size
+
         for x, y in path:
             self.setCellValue(x, y, MATRIX_CODE["path"])
-            self.draw_search_board()
-
-        cell_size = SEARCH_BOARD_SIZE // max(self.m + 1, self.n + 1)
+            self.canvas.after(0, self.draw_search_board())
 
         line_path = [self.start_point] + path + [self.goal_point]
 
@@ -338,7 +339,7 @@ def start_algorithm():
         no_path_label.pack()
         return
 
-    search_board.canvas.after(100, search_board.draw_path(path))
+    search_board.canvas.after(0, search_board.draw_path(path))
 
     cost_label.config(text=f"Cost of the path: {cost}")
     visited_label.config(text=f"Number of visited nodes: {visited}")
