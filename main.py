@@ -159,9 +159,9 @@ class SearchBoard:
         self.draw_search_board()
 
     # Check if a cell is within the table
-    def inTable(self, x, y):
+    def isInTable(self, x, y):
         return 0 <= x < self.n and 0 <= y < self.m
-    
+
     def bfs(self) -> None:
         # Directions for movement: right, left, up, down, and diagonals
         directions = [(1, 0), (-1, 0), (0, 1), (0, -1)]
@@ -179,7 +179,7 @@ class SearchBoard:
         parent[(start_x, start_y)] = None  # Start point has no parent
         # Variable to check if goal is reached
         found_goal = False
-       
+
         # BFS algorithm
         while not queue.empty() and not found_goal:
             x, y, cost = queue.get()
@@ -188,7 +188,7 @@ class SearchBoard:
                 # Next cell
                 nx, ny = x + dx, y + dy
                 # Check if the next cell is within the table and has not been visited
-                if self.inTable(nx, ny) and (nx, ny) not in visited:
+                if self.isInTable(nx, ny) and (nx, ny) not in visited:
                     # Check if the next cell is not an obstacle
                     if self.matrix[ny][nx] not in [MATRIX_CODE["obstacle"], MATRIX_CODE["obstacle_vertex"]]:
                         queue.put((nx, ny, cost + 1))   # Enqueue next cell
@@ -212,7 +212,7 @@ class SearchBoard:
                 path.append(current)
                 current = parent[current]
             path.reverse()
-        
+
         # Return path, cost, and number of visited nodes
         if path:
             return (path, cost, len(visited))
@@ -222,7 +222,7 @@ class SearchBoard:
     # Heuristic function for Greedy Best First Search
     def heuristic(self,a, b):
         return abs(a[0] - b[0]) + abs(a[1] - b[1])  # Manhattan distance
-    
+
     # Greedy Best First Search
     def gbfs(self) -> None:
         # Initialize variables
@@ -232,19 +232,19 @@ class SearchBoard:
         queue = PriorityQueue()
         queue.put((0, (start_x, start_y)))  # Priority queue uses heuristic as the first item
         parent = {(start_x, start_y): None}  # To reconstruct the path
-        
+
         # Directions for movement: right, left, up, down, and diagonals
         directions = [(1, 0), (-1, 0), (0, 1), (0, -1)]
-        
+
         # GBFS algorithm
         while not queue.empty():
             # Get the node with the lowest heuristic value
             (current_x, current_y) = queue.get()[1]
-            
+
             # Check if goal is reached
             if (current_x, current_y) == (goal_x, goal_y):
                 break
-            
+
             # Skip if the node has been visited
             if (current_x, current_y) in visited:
                 continue
@@ -257,7 +257,7 @@ class SearchBoard:
                 # The next cell
                 n_x, n_y = current_x + dx, current_y + dy
                 # Check if the next cell is within the table and has not been visited
-                if self.inTable(n_x, n_y) and (n_x, n_y) not in visited:
+                if self.isInTable(n_x, n_y) and (n_x, n_y) not in visited:
                     # Check if the next cell is not an obstacle
                     if self.matrix[n_y][n_x] not in [MATRIX_CODE["obstacle"], MATRIX_CODE["obstacle_vertex"]]:
                         next_node = (n_x, n_y)
