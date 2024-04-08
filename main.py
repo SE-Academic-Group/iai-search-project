@@ -72,7 +72,8 @@ class SearchBoard:
         self.matrix = [[]]
 
     def setCellValue(self, x: int, y: int, value: int) -> None:
-        self.matrix[y][x] = value
+        if (self.matrix[y][x] == MATRIX_CODE['empty'] or self.matrix[y][x] == MATRIX_CODE['visited']):
+            self.matrix[y][x] = value
 
     def read_input_file(self, file_path) -> None:
         with open(file_path, "r") as file:
