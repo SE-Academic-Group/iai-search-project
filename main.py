@@ -377,8 +377,12 @@ Label(left_frame, text="Group members information:", font="arial 14").pack(
 for i, member in enumerate(GROUP_MEMBERS):
     Label(left_frame, text=member, font="arial 12").pack(pady=(0, 8), fill=X)
 
-Label(left_frame, text="Please select a search algorithm", font="arial 14").pack(
+Label(left_frame, text="Please edit input.txt to change \nthe data of the search board", font="arial 12").pack(
     pady=(24, 12), fill=X
+)
+
+Label(left_frame, text="Please select a search algorithm", font="arial 14").pack(
+    pady=(12, 12), fill=X
 )
 
 for i, alg in enumerate(ALGORITHMS):
