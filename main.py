@@ -24,6 +24,7 @@ MATRIX_CODE = {
     "empty": 4,
     "visited": 5,
     "path": 6,
+    "edge": 7
 }
 MATRIX_CODE_COLORS = {
     "start": "#0ea5e9",
@@ -32,7 +33,8 @@ MATRIX_CODE_COLORS = {
     "obstacle_vertex": "grey",
     "empty": "white",
     "visited": "lightblue",
-    "path": "lightgreen"
+    "path": "lightgreen",
+    "edge": "pink"
 }
 FAVICON_PATH = "favicon.ico"
 WINDOW_TITLE = "CSC14003 - Introduction to Artificial Intelligence - Search Project"
@@ -78,7 +80,7 @@ class SearchBoard:
     def read_input_file(self, file_path) -> None:
         with open(file_path, "r") as file:
             n, m = map(int, file.readline().split(","))
-            self.m, self.n = m, n
+            self.m, self.n = m + 1, n + 1
             self.matrix = [[MATRIX_CODE["empty"]] * n for _ in range(m)]
 
             sx, sy, gx, gy = map(int, file.readline().split(","))
@@ -86,6 +88,10 @@ class SearchBoard:
             self.setCellValue(gx, gy, MATRIX_CODE["goal"])
             self.start_point = (sx, sy)
             self.goal_point = (gx, gy)
+
+            for i in range(n):
+                self.setCellValue(i, 0, MATRIX_CODE["edge"])
+                self.setCellValue(i, m - 1, MATRIX_CODE["edge"])
 
             no_obstacles = int(file.readline())
 
