@@ -138,7 +138,7 @@ class SearchBoard:
         canvas.delete("all")
 
         cell_size = SEARCH_BOARD_SIZE // max(m + 1, n + 1)
-        offset = 6
+        offset = 0
 
         for i in range(m):
             canvas.create_text(offset, (i + 1.5) * cell_size, text=f" {i}", anchor="w")
