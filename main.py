@@ -225,12 +225,9 @@ class SearchBoard:
                 path.append(current)
                 current = parent[current]
             path.reverse()
-
-        # Return path, cost, and number of visited nodes
-        if path:
             return (path, cost, len(visited))
-        else:
-            return (None, None, None)
+
+        return (None, None, None)
 
     # Heuristic function for Greedy Best First Search
     def heuristic(self,a, b):
@@ -335,13 +332,13 @@ def start_algorithm():
     search_board.start()
     (path, cost, visited) = algo_func();
 
-    search_board.canvas.after(100, search_board.draw_path(path))
-
     result.pack(pady=(20, 8))
 
     if path is None:
         no_path_label.pack()
         return
+
+    search_board.canvas.after(100, search_board.draw_path(path))
 
     cost_label.config(text=f"Cost of the path: {cost}")
     visited_label.config(text=f"Number of visited nodes: {visited}")
