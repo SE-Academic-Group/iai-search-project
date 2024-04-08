@@ -27,7 +27,7 @@ MATRIX_CODE = {
 }
 MATRIX_CODE_COLORS = {
     "start": "#0ea5e9",
-    "goal": "orangered",
+    "goal": "darkblue",
     "obstacle": "lightgrey",
     "obstacle_vertex": "grey",
     "empty": "white",
