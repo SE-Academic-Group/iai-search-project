@@ -26,15 +26,16 @@ MATRIX_CODE = {
     "path": 6,
     "edge": 7
 }
+BLOCK_LIST = [MATRIX_CODE["obstacle"], MATRIX_CODE["obstacle_vertex"], MATRIX_CODE['edge']]
 MATRIX_CODE_COLORS = {
     "start": "#0ea5e9",
     "goal": "orangered",
-    "obstacle": "lightgrey",
-    "obstacle_vertex": "grey",
+    "obstacle": "#94a3b8",
+    "obstacle_vertex": "#64748b",
     "empty": "white",
     "visited": "lightblue",
     "path": "lightgreen",
-    "edge": "pink"
+    "edge": "lightgrey"
 }
 FAVICON_PATH = "favicon.ico"
 WINDOW_TITLE = "CSC14003 - Introduction to Artificial Intelligence - Search Project"
@@ -80,7 +81,9 @@ class SearchBoard:
     def read_input_file(self, file_path) -> None:
         with open(file_path, "r") as file:
             n, m = map(int, file.readline().split(","))
-            self.m, self.n = m + 1, n + 1
+            m += 1
+            n += 1
+            self.m, self.n = m, n
             self.matrix = [[MATRIX_CODE["empty"]] * n for _ in range(m)]
 
             sx, sy, gx, gy = map(int, file.readline().split(","))
@@ -92,6 +95,10 @@ class SearchBoard:
             for i in range(n):
                 self.setCellValue(i, 0, MATRIX_CODE["edge"])
                 self.setCellValue(i, m - 1, MATRIX_CODE["edge"])
+
+            for i in range(m):
+                self.setCellValue(0, i, MATRIX_CODE["edge"])
+                self.setCellValue(n - 1, i, MATRIX_CODE["edge"])
 
             no_obstacles = int(file.readline())
 
@@ -196,7 +203,7 @@ class SearchBoard:
                 # Check if the next cell is within the table and has not been visited
                 if self.isInTable(nx, ny) and (nx, ny) not in visited:
                     # Check if the next cell is not an obstacle
-                    if self.matrix[ny][nx] not in [MATRIX_CODE["obstacle"], MATRIX_CODE["obstacle_vertex"]]:
+                    if self.matrix[ny][nx] not in BLOCK_LIST:
                         queue.put((nx, ny, cost + 1))   # Enqueue next cell
                         visited.add((nx, ny)) # Mark next cell as visited
                         parent[(nx, ny)] = (x, y)  # Mark current cell as parent
@@ -265,7 +272,7 @@ class SearchBoard:
                 # Check if the next cell is within the table and has not been visited
                 if self.isInTable(n_x, n_y) and (n_x, n_y) not in visited:
                     # Check if the next cell is not an obstacle
-                    if self.matrix[n_y][n_x] not in [MATRIX_CODE["obstacle"], MATRIX_CODE["obstacle_vertex"]]:
+                    if self.matrix[n_y][n_x] not in BLOCK_LIST:
                         next_node = (n_x, n_y)
                         priority = self.heuristic(next_node, (goal_x, goal_y))
                         queue.put((priority, next_node))
