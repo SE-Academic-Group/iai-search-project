@@ -1,6 +1,8 @@
 from tkinter import *
 from time import sleep
 from scipy.spatial import ConvexHull
+from queue import Queue
+from queue import PriorityQueue
 
 def bresenham(x0, y0, x1, y1):
     dx = abs(x1 - x0)
@@ -29,7 +31,7 @@ GROUP_MEMBERS = [
     "21120524 - Truong Minh Phat",
 ]
 ALGORITHMS = [
-    "DFS - Depth First Search",
+    "BFS - Breadth First Search",
     "GBFS - Greedy Best First Search",
     "A* - A Star Search",
 ]
@@ -156,11 +158,126 @@ class SearchBoard:
         self.read_input_file(INPUT_FILE_PATH)
         self.draw_search_board()
 
-    def dfs() -> None:
-        pass
+    # Check if a cell is within the table
+    def inTable(self, x, y):
+        return 0 <= x < self.n and 0 <= y < self.m
+    
+    def bfs(self) -> None:
+        # Directions for movement: right, left, up, down, and diagonals
+        directions = [(1, 0), (-1, 0), (0, 1), (0, -1)]
+        queue = Queue()  # Queue for BFS
+        visited = set()  # Keep track of visited cells
+        parent = {}  # To reconstruct the path
 
-    def gbfs() -> None:
-        pass
+        start_x, start_y = self.start_point
+        goal_x, goal_y = self.goal_point
+
+        cost = 0
+        # Enqueue start point and mark as visited
+        queue.put((start_x, start_y, cost))
+        visited.add((start_x, start_y))
+        parent[(start_x, start_y)] = None  # Start point has no parent
+        # Variable to check if goal is reached
+        found_goal = False
+       
+        # BFS algorithm
+        while not queue.empty() and not found_goal:
+            x, y, cost = queue.get()
+
+            for dx, dy in directions:
+                # Next cell
+                nx, ny = x + dx, y + dy
+                # Check if the next cell is within the table and has not been visited
+                if self.inTable(nx, ny) and (nx, ny) not in visited:
+                    # Check if the next cell is not an obstacle
+                    if self.matrix[ny][nx] not in [MATRIX_CODE["obstacle"], MATRIX_CODE["obstacle_vertex"]]:
+                        queue.put((nx, ny, cost + 1))   # Enqueue next cell
+                        visited.add((nx, ny)) # Mark next cell as visited
+                        parent[(nx, ny)] = (x, y)  # Mark current cell as parent
+
+                        # Visualize progress
+                        self.draw_progress([(nx, ny)])
+
+                        # Check if goal is reached
+                        if (nx, ny) == (goal_x, goal_y):
+                            found_goal = True
+                            cost += 1
+                            break
+
+        if found_goal:
+            # Reconstruct path
+            path = []
+            current = (goal_x, goal_y)
+            while current:
+                path.append(current)
+                current = parent[current]
+            path.reverse()
+        
+        # Return path, cost, and number of visited nodes
+        if path:
+            return (path, cost, len(visited))
+        else:
+            return (None, None, None)
+
+    # Heuristic function for Greedy Best First Search
+    def heuristic(self,a, b):
+        return abs(a[0] - b[0]) + abs(a[1] - b[1])  # Manhattan distance
+    
+    # Greedy Best First Search
+    def gbfs(self) -> None:
+        # Initialize variables
+        goal_x, goal_y = self.goal_point
+        start_x, start_y = self.start_point
+        visited = set()
+        queue = PriorityQueue()
+        queue.put((0, (start_x, start_y)))  # Priority queue uses heuristic as the first item
+        parent = {(start_x, start_y): None}  # To reconstruct the path
+        
+        # Directions for movement: right, left, up, down, and diagonals
+        directions = [(1, 0), (-1, 0), (0, 1), (0, -1)]
+        
+        # GBFS algorithm
+        while not queue.empty():
+            # Get the node with the lowest heuristic value
+            (current_x, current_y) = queue.get()[1]
+            
+            # Check if goal is reached
+            if (current_x, current_y) == (goal_x, goal_y):
+                break
+            
+            # Skip if the node has been visited
+            if (current_x, current_y) in visited:
+                continue
+
+            # Mark the node as visited
+            visited.add((current_x, current_y))
+            self.draw_progress([(current_x, current_y)]) # Visualize progress
+
+            for dx, dy in directions:
+                # The next cell
+                n_x, n_y = current_x + dx, current_y + dy
+                # Check if the next cell is within the table and has not been visited
+                if self.inTable(n_x, n_y) and (n_x, n_y) not in visited:
+                    # Check if the next cell is not an obstacle
+                    if self.matrix[n_y][n_x] not in [MATRIX_CODE["obstacle"], MATRIX_CODE["obstacle_vertex"]]:
+                        next_node = (n_x, n_y)
+                        priority = self.heuristic(next_node, (goal_x, goal_y))
+                        queue.put((priority, next_node))
+                        parent[next_node] = (current_x, current_y)
+
+        # Reconstruct path
+        path = []
+        current = (goal_x, goal_y)
+        while current in parent:
+            path.append(current)
+            current = parent[current]
+        path.reverse()
+
+        # Return path, cost, and number of visited nodes
+        if path:
+            return (path, len(path) - 1, len(visited))
+        else:
+            return (None, None, None)
 
     def a_star() -> None:
         pass
@@ -195,16 +312,23 @@ class SearchBoard:
 
 def start_algorithm():
     # This is for testing purpose
-    path = [
-        (3, 2), (4, 2), (5, 3), (6, 3), (7, 3), (8, 3), (9, 3), (10, 3),
-        (10, 4), (10, 5), (10, 6), (10, 7), (10, 8), (10, 9), (10, 10),
-        (10, 11), (11, 11), (12, 11), (13, 11), (14, 11), (14, 12), (14, 13),
-        (14, 14), (14, 15), (14, 16), (15, 16)
-    ]
+    # path = [
+    #     (3, 2), (4, 2), (5, 3), (6, 3), (7, 3), (8, 3), (9, 3), (10, 3),
+    #     (10, 4), (10, 5), (10, 6), (10, 7), (10, 8), (10, 9), (10, 10),
+    #     (10, 11), (11, 11), (12, 11), (13, 11), (14, 11), (14, 12), (14, 13),
+    #     (14, 14), (14, 15), (14, 16), (15, 16)
+    # ]
 
     search_board.start()
-    search_board.draw_progress(path)
+    # (path, cost, visited) = search_board.bfs();
+    (path, cost, visited) = search_board.gbfs();
+    print("Path found")
+    print(path)
+    if path is None:
+        return
     search_board.canvas.after(100, search_board.draw_path(path))
+    print(f"Cost of path: {cost}")
+    print(f"Number of visited nodes: {visited}")
 
     # TODO: Show result (cost of path, number of visited nodes, etc.) after performing the search algorithm
 
