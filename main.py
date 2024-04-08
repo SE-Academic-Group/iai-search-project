@@ -27,7 +27,7 @@ MATRIX_CODE = {
 }
 MATRIX_CODE_COLORS = {
     "start": "#0ea5e9",
-    "goal": "darkblue",
+    "goal": "orangered",
     "obstacle": "lightgrey",
     "obstacle_vertex": "grey",
     "empty": "white",
@@ -305,7 +305,7 @@ class SearchBoard:
                 (y1 + 1) * cell_size + cell_size // 2,
                 (x2 + 1) * cell_size + cell_size // 2,
                 (y2 + 1) * cell_size + cell_size // 2,
-                fill=MATRIX_CODE_COLORS['goal'],
+                fill='darkgreen',
                 width=3
             )
 
