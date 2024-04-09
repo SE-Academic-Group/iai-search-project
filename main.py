@@ -43,7 +43,7 @@ MATRIX_CODE_COLORS = {
 }
 FAVICON_PATH = "favicon.ico"
 WINDOW_TITLE = "CSC14003 - Introduction to Artificial Intelligence - Search Project"
-SEARCH_BOARD_SIZE = 600
+SEARCH_BOARD_SIZE = 550
 INPUT_FILE_PATH = "input.txt"
 
 root = Tk()
@@ -175,7 +175,26 @@ class SearchBoard:
     # Check if a cell is within the table
     def isInTable(self, x, y):
         return 0 <= x < self.n and 0 <= y < self.m
-
+    def is_valid_point(self, point):
+        x = point[0]
+        y = point[1]
+        if(x < 0 or x > self.n) or (y < 0 or y > self.m):
+            return False
+        return True
+    def is_move_point(self, point):
+        x = point[0]
+        y = point[1]
+        if self.is_valid_point(point):
+            if(self.matrix[y][x] == MATRIX_CODE["empty"] or self.matrix[y][x] == MATRIX_CODE["goal"] or self.matrix[y][x] == MATRIX_CODE["start"]):
+                return True
+        return False
+    def get_vertex_neighbours(self, point):
+        n = []
+        for dx, dy in [(1,0),(-1,0),(0, 1),(0, -1)]:
+            new_point = (point[0] + dx, point[1] + dy)
+            if(self.is_move_point(new_point)):
+                n.append(new_point)
+        return n
     def bfs(self) -> None:
         # Directions for movement: right, left, up, down, and diagonals
         directions = [(1, 0), (-1, 0), (0, 1), (0, -1)]
@@ -290,8 +309,60 @@ class SearchBoard:
         else:
             return (None, None, None)
 
-    def a_star() -> None:
-        pass
+    def a_star(self):
+        G = {}
+        F = {}
+
+        #Initialize starting values
+        G[self.start_point] = 0
+        F[self.start_point] = self.heuristic(self.start_point, self.goal_point)
+
+        closedVertices = set()
+        openVertices = set([self.start_point])
+        cameFrom = {}
+
+        while len(openVertices) > 0:
+            #Get the vertex in the open list with the lowest F score
+            current = None
+            currentFscore = None
+            for pos in openVertices:
+                if current is None or F[pos] < currentFscore:
+                    currentFscore = F[pos]
+                    current = pos
+
+            #Check if we have reached the goal
+            if current == self.goal_point:
+                #Retrace our route backward
+                path = [current]
+                while current in cameFrom:
+                    current = cameFrom[current]
+                    path.append(current)
+                path.reverse()
+                return path, len(path) - 1, len(closedVertices) 
+
+            #Mark the current vertex as closed
+            openVertices.remove(current)
+            self.draw_progress([(current[0], current[1])])
+            closedVertices.add(current)
+
+            #Update scores for vertices near the current point
+            for neighbour in self.get_vertex_neighbours(current):
+                if neighbour in closedVertices:
+                    continue #We have already processed this node exhaustively
+                candidateG = G[current] + 1
+                candidateH = self.heuristic(neighbour, self.goal_point)
+                candidateF = candidateG + candidateH
+                if neighbour not in openVertices:
+                    openVertices.add(neighbour) #Discovered a new vertex
+                elif candidateF >= F[neighbour]:
+                    continue 
+
+                cameFrom[neighbour] = current
+                G[neighbour] = candidateG
+                H = self.heuristic(neighbour, self.goal_point)
+                F[neighbour] = G[neighbour] + H
+
+        return None, None, None
 
     def draw_progress(self, progress: list[tuple[int, int]]) -> None:
         for x, y in progress:
