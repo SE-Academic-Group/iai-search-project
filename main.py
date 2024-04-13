@@ -44,14 +44,12 @@ MATRIX_CODE_COLORS = {
     "edge": "lightgrey",
     "checkpoint": "yellow"
 }
-FAVICON_PATH = "favicon.ico"
 WINDOW_TITLE = "CSC14003 - Introduction to Artificial Intelligence - Search Project"
 SEARCH_BOARD_SIZE = 550
 INPUT_FILE_PATH = "input.txt"
 
 root = Tk()
 root.title(WINDOW_TITLE)
-root.iconbitmap(FAVICON_PATH)
 root.geometry("+0+0")
 root.resizable(False, False)
 root.configure(bg="white")
