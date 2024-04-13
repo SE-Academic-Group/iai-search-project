@@ -456,6 +456,8 @@ class SearchBoard:
                 path_matrix[i][j] = path
                 path_matrix[j][i] = path[::-1]
 
+        self.start()
+
         # Adjusting the adjacency matrix: cost from all checkpoints to the start is infinity, and cost from goal to all checkpoints is infinity
         for i in range(1, len(points) - 1):
             adjacency_matrix[i][0] = float('inf')
