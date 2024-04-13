@@ -14,7 +14,7 @@ ALGORITHMS = [
     "BFS - Breadth First Search",
     "GBFS - Greedy Best First Search",
     "A* - A Star Search",
-    "A* Search With Checkpoints"
+    "A* Search With Checkpoints",
 ]
 TITLE = "project 1: Robot finds the path".upper()
 MATRIX_CODE = {
@@ -26,13 +26,13 @@ MATRIX_CODE = {
     "visited": 5,
     "path": 6,
     "edge": 7,
-    "checkpoint": 8
+    "checkpoint": 8,
 }
 BLOCK_LIST = [
     MATRIX_CODE["obstacle"],
     MATRIX_CODE["obstacle_vertex"],
-    MATRIX_CODE['edge']
-    ]
+    MATRIX_CODE["edge"],
+]
 MATRIX_CODE_COLORS = {
     "start": "#0ea5e9",
     "goal": "orangered",
@@ -42,7 +42,7 @@ MATRIX_CODE_COLORS = {
     "visited": "lightblue",
     "path": "lightgreen",
     "edge": "lightgrey",
-    "checkpoint": "yellow"
+    "checkpoint": "yellow",
 }
 WINDOW_TITLE = "CSC14003 - Introduction to Artificial Intelligence - Search Project"
 SEARCH_BOARD_SIZE = 550
@@ -54,14 +54,16 @@ root.geometry("+0+0")
 root.resizable(False, False)
 root.configure(bg="white")
 
+
 def bresenham(x0, y0, x1, y1):
     dx = abs(x1 - x0)
     dy = abs(y1 - y0)
     sx = -1 if x0 > x1 else 1
     sy = -1 if y0 > y1 else 1
     err = dx - dy
-    # points = [(x0, y0)]
+
     points = []
+
     while x0 != x1 or y0 != y1:
         e2 = err * 2
         if e2 > -dy:
@@ -71,8 +73,11 @@ def bresenham(x0, y0, x1, y1):
             err += dx
             y0 += sy
         points.append((x0, y0))
+
     points.pop(len(points) - 1)
+
     return points
+
 
 class SearchBoard:
     def __init__(self, canvas) -> None:
@@ -80,7 +85,10 @@ class SearchBoard:
         self.matrix = [[]]
 
     def setCellValue(self, x: int, y: int, value: int) -> None:
-        if (self.matrix[y][x] == MATRIX_CODE['empty'] or self.matrix[y][x] == MATRIX_CODE['visited']):
+        if (
+            self.matrix[y][x] == MATRIX_CODE["empty"]
+            or self.matrix[y][x] == MATRIX_CODE["visited"]
+        ):
             self.matrix[y][x] = value
 
     def read_input_file(self, file_path) -> None:
@@ -100,7 +108,9 @@ class SearchBoard:
             self.start_point = (sx, sy)
             self.goal_point = (gx, gy)
 
-            self.checkpoints = [(points[i], points[i + 1]) for i in range(4, len(points), 2)]
+            self.checkpoints = [
+                (points[i], points[i + 1]) for i in range(4, len(points), 2)
+            ]
             for x, y in self.checkpoints:
                 self.setCellValue(x, y, MATRIX_CODE["checkpoint"])
 
@@ -182,26 +192,37 @@ class SearchBoard:
     # Check if a cell is within the table
     def isInTable(self, x, y):
         return 0 <= x < self.n and 0 <= y < self.m
+
     def is_valid_point(self, point):
         x = point[0]
         y = point[1]
-        if(x < 0 or x > self.n) or (y < 0 or y > self.m):
+        if (x < 0 or x > self.n) or (y < 0 or y > self.m):
             return False
         return True
+
     def is_move_point(self, point):
         x = point[0]
         y = point[1]
         if self.is_valid_point(point):
-            if(self.matrix[y][x] == MATRIX_CODE["empty"] or self.matrix[y][x] == MATRIX_CODE["goal"] or self.matrix[y][x] == MATRIX_CODE["start"] or self.matrix[y][x] == MATRIX_CODE["checkpoint"] or self.matrix[y][x] == MATRIX_CODE["visited"] or self.matrix[y][x] == MATRIX_CODE["path"]):
+            if (
+                self.matrix[y][x] == MATRIX_CODE["empty"]
+                or self.matrix[y][x] == MATRIX_CODE["goal"]
+                or self.matrix[y][x] == MATRIX_CODE["start"]
+                or self.matrix[y][x] == MATRIX_CODE["checkpoint"]
+                or self.matrix[y][x] == MATRIX_CODE["visited"]
+                or self.matrix[y][x] == MATRIX_CODE["path"]
+            ):
                 return True
         return False
+
     def get_vertex_neighbours(self, point):
         n = []
-        for dx, dy in [(1,0),(-1,0),(0, 1),(0, -1)]:
+        for dx, dy in [(1, 0), (-1, 0), (0, 1), (0, -1)]:
             new_point = (point[0] + dx, point[1] + dy)
-            if(self.is_move_point(new_point)):
+            if self.is_move_point(new_point):
                 n.append(new_point)
         return n
+
     def bfs(self) -> None:
         # Directions for movement: right, left, up, down, and diagonals
         directions = [(1, 0), (-1, 0), (0, 1), (0, -1)]
@@ -231,8 +252,8 @@ class SearchBoard:
                 if self.isInTable(nx, ny) and (nx, ny) not in visited:
                     # Check if the next cell is not an obstacle
                     if self.matrix[ny][nx] not in BLOCK_LIST:
-                        queue.put((nx, ny, cost + 1))   # Enqueue next cell
-                        visited.add((nx, ny)) # Mark next cell as visited
+                        queue.put((nx, ny, cost + 1))  # Enqueue next cell
+                        visited.add((nx, ny))  # Mark next cell as visited
                         parent[(nx, ny)] = (x, y)  # Mark current cell as parent
 
                         # # Visualize progress
@@ -257,7 +278,7 @@ class SearchBoard:
         return (None, None, None)
 
     # Heuristic function for Greedy Best First Search
-    def heuristic(self,a, b):
+    def heuristic(self, a, b):
         return abs(a[0] - b[0]) + abs(a[1] - b[1])  # Manhattan distance
 
     # Greedy Best First Search
@@ -267,7 +288,9 @@ class SearchBoard:
         start_x, start_y = self.start_point
         visited = set()
         queue = PriorityQueue()
-        queue.put((0, (start_x, start_y)))  # Priority queue uses heuristic as the first item
+        queue.put(
+            (0, (start_x, start_y))
+        )  # Priority queue uses heuristic as the first item
         parent = {(start_x, start_y): None}  # To reconstruct the path
 
         # Directions for movement: right, left, up, down, and diagonals
@@ -288,7 +311,7 @@ class SearchBoard:
 
             # Mark the node as visited
             visited.add((current_x, current_y))
-            self.draw_progress([(current_x, current_y)]) # Visualize progress
+            self.draw_progress([(current_x, current_y)])  # Visualize progress
 
             for dx, dy in directions:
                 # The next cell
@@ -320,7 +343,7 @@ class SearchBoard:
         G = {}
         F = {}
 
-        #Initialize starting values
+        # Initialize starting values
         G[self.start_point] = 0
         F[self.start_point] = self.heuristic(self.start_point, self.goal_point)
 
@@ -329,7 +352,7 @@ class SearchBoard:
         cameFrom = {}
 
         while len(openVertices) > 0:
-            #Get the vertex in the open list with the lowest F score
+            # Get the vertex in the open list with the lowest F score
             current = None
             currentFscore = None
             for pos in openVertices:
@@ -337,9 +360,9 @@ class SearchBoard:
                     currentFscore = F[pos]
                     current = pos
 
-            #Check if we have reached the goal
+            # Check if we have reached the goal
             if current == self.goal_point:
-                #Retrace our route backward
+                # Retrace our route backward
                 path = [current]
                 while current in cameFrom:
                     current = cameFrom[current]
@@ -347,20 +370,20 @@ class SearchBoard:
                 path.reverse()
                 return path, len(path) - 1, len(closedVertices)
 
-            #Mark the current vertex as closed
+            # Mark the current vertex as closed
             openVertices.remove(current)
             self.draw_progress([(current[0], current[1])])
             closedVertices.add(current)
 
-            #Update scores for vertices near the current point
+            # Update scores for vertices near the current point
             for neighbour in self.get_vertex_neighbours(current):
                 if neighbour in closedVertices:
-                    continue #We have already processed this node exhaustively
+                    continue  # We have already processed this node exhaustively
                 candidateG = G[current] + 1
                 candidateH = self.heuristic(neighbour, self.goal_point)
                 candidateF = candidateG + candidateH
                 if neighbour not in openVertices:
-                    openVertices.add(neighbour) #Discovered a new vertex
+                    openVertices.add(neighbour)  # Discovered a new vertex
                 elif candidateF >= F[neighbour]:
                     continue
 
@@ -430,13 +453,15 @@ class SearchBoard:
         checkpoints = self.checkpoints
         points = [self.start_point] + checkpoints + [self.goal_point]
         # Initialize adjacency matrix to store the cost of the path between each pair of points
-        adjacency_matrix = [[float('inf') for _ in range(len(points))] for _ in range(len(points))]
+        adjacency_matrix = [
+            [float("inf") for _ in range(len(points))] for _ in range(len(points))
+        ]
         # Initialize path matrix
         path_matrix = [[None for _ in range(len(points))] for _ in range(len(points))]
 
         total_visited = 0
         # Calculate the cost of the path from each pair of points
-        for i in range(len(points)-1):
+        for i in range(len(points) - 1):
             for j in range(i + 1, len(points)):
                 # Skip finding the path between the start and goal points
                 if i == 0 and j == len(points) - 1:
@@ -457,20 +482,21 @@ class SearchBoard:
 
         # Adjusting the adjacency matrix: cost from all checkpoints to the start is infinity, and cost from goal to all checkpoints is infinity
         for i in range(1, len(points) - 1):
-            adjacency_matrix[i][0] = float('inf')
-            adjacency_matrix[-1][i] = float('inf')
+            adjacency_matrix[i][0] = float("inf")
+            adjacency_matrix[-1][i] = float("inf")
         adjacency_matrix[-1][0] = 0
 
         # Solve the Traveling Salesman Problem using dynamic programming
         class TSP:
             def __init__(self):
                 self.optimal_path = []
-                self.optimal_cost = float('inf')
+                self.optimal_cost = float("inf")
                 self.visited_points = [False] * len(points)
                 self.checkpoints = checkpoints
 
                 self.current_path = [0] * len(points)
                 self.visited_points[0] = True
+
             def solve_tsp(self):
                 checkpoint_indexes = [i for i in range(1, len(points) - 1)]
                 for perm in permutations(checkpoint_indexes):
@@ -490,7 +516,7 @@ class SearchBoard:
         cost = tsp.optimal_cost
         # Get the final path
         final_path = []
-        for i in range(len(path)-1):
+        for i in range(len(path) - 1):
             final_path += path_matrix[path[i]][path[i + 1]]
         return final_path, cost, total_visited
 
@@ -517,8 +543,8 @@ class SearchBoard:
                 (y1 + 1) * cell_size + cell_size // 2,
                 (x2 + 1) * cell_size + cell_size // 2,
                 (y2 + 1) * cell_size + cell_size // 2,
-                fill='darkgreen',
-                width=3
+                fill="darkgreen",
+                width=3,
             )
 
 
@@ -527,7 +553,7 @@ def start_algorithm():
         0: search_board.bfs,
         1: search_board.gbfs,
         2: search_board.a_star,
-        3: search_board.a_star_with_checkpoints
+        3: search_board.a_star_with_checkpoints,
     }
 
     algo_func = algo_map[selected_alg_idx.get()]
@@ -565,7 +591,9 @@ result = Label(left_frame, text="Result", font="arial 14")
 cost_label = Label(left_frame, text="Cost: ", font="arial 12")
 visited_label = Label(left_frame, text="Visited: ", font="arial 12")
 alg_name_label = Label(left_frame, text="Algorithm: ", font="arial 12")
-no_path_label = Label(left_frame, text="No path found", font="arial 12", foreground="red")
+no_path_label = Label(
+    left_frame, text="No path found", font="arial 12", foreground="red"
+)
 search_board_canvas = Canvas(
     right_frame,
     bg="white",
@@ -591,9 +619,11 @@ Label(left_frame, text="Group members information:", font="arial 14").pack(
 for i, member in enumerate(GROUP_MEMBERS):
     Label(left_frame, text=member, font="arial 12").pack(pady=(0, 8), fill=X)
 
-Label(left_frame, text="Please edit input.txt to change \nthe data of the search board", font="arial 12").pack(
-    pady=(24, 12), fill=X
-)
+Label(
+    left_frame,
+    text="Please edit input.txt to change \nthe data of the search board",
+    font="arial 12",
+).pack(pady=(24, 12), fill=X)
 
 Label(left_frame, text="Please select a search algorithm", font="arial 14").pack(
     pady=(12, 12), fill=X
@@ -623,12 +653,12 @@ Label(right_frame, text="Search Performance", font=("Dank Mono", 12, "bold")).pa
 
 annotation_frame = Frame(right_frame, bg="white")
 annotations = [
-    ("Start", MATRIX_CODE_COLORS['start'], 'white'),
-    ("Goal", MATRIX_CODE_COLORS['goal'], 'white'),
-    ("Obstacle", MATRIX_CODE_COLORS['obstacle'], None),
-    ("Obstacle Vertex", MATRIX_CODE_COLORS['obstacle_vertex'], 'white'),
-    ("Visited", MATRIX_CODE_COLORS['visited'], None),
-    ("Path", MATRIX_CODE_COLORS['path'], None)
+    ("Start", MATRIX_CODE_COLORS["start"], "white"),
+    ("Goal", MATRIX_CODE_COLORS["goal"], "white"),
+    ("Obstacle", MATRIX_CODE_COLORS["obstacle"], None),
+    ("Obstacle Vertex", MATRIX_CODE_COLORS["obstacle_vertex"], "white"),
+    ("Visited", MATRIX_CODE_COLORS["visited"], None),
+    ("Path", MATRIX_CODE_COLORS["path"], None),
 ]
 
 for i, (text, bg, foreground) in enumerate(annotations):
