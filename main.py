@@ -348,7 +348,7 @@ class SearchBoard:
                     current = cameFrom[current]
                     path.append(current)
                 path.reverse()
-                return path, len(path) - 1, len(closedVertices) 
+                return path, len(path) - 1, len(closedVertices)
 
             #Mark the current vertex as closed
             openVertices.remove(current)
@@ -365,7 +365,7 @@ class SearchBoard:
                 if neighbour not in openVertices:
                     openVertices.add(neighbour) #Discovered a new vertex
                 elif candidateF >= F[neighbour]:
-                    continue 
+                    continue
 
                 cameFrom[neighbour] = current
                 G[neighbour] = candidateG
