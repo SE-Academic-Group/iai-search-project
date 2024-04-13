@@ -1,5 +1,4 @@
 from tkinter import *
-from time import sleep
 from scipy.spatial import ConvexHull
 from queue import Queue
 from queue import PriorityQueue
