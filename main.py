@@ -3,6 +3,7 @@ from time import sleep
 from scipy.spatial import ConvexHull
 from queue import Queue
 from queue import PriorityQueue
+from itertools import permutations
 
 GROUP_MEMBERS = [
     "21120502 - Tran Duc Minh",
@@ -14,6 +15,7 @@ ALGORITHMS = [
     "BFS - Breadth First Search",
     "GBFS - Greedy Best First Search",
     "A* - A Star Search",
+    "A* Search With Checkpoints"
 ]
 TITLE = "project 1: Robot finds the path".upper()
 MATRIX_CODE = {
@@ -24,7 +26,8 @@ MATRIX_CODE = {
     "empty": 4,
     "visited": 5,
     "path": 6,
-    "edge": 7
+    "edge": 7,
+    "checkpoint": 8
 }
 BLOCK_LIST = [
     MATRIX_CODE["obstacle"],
@@ -39,7 +42,8 @@ MATRIX_CODE_COLORS = {
     "empty": "white",
     "visited": "lightblue",
     "path": "lightgreen",
-    "edge": "lightgrey"
+    "edge": "lightgrey",
+    "checkpoint": "yellow"
 }
 FAVICON_PATH = "favicon.ico"
 WINDOW_TITLE = "CSC14003 - Introduction to Artificial Intelligence - Search Project"
@@ -91,11 +95,17 @@ class SearchBoard:
             self.matrix = [[MATRIX_CODE["empty"]] * n for _ in range(m)]
             self.cell_size = SEARCH_BOARD_SIZE // max(m + 1, n + 1)
 
-            sx, sy, gx, gy = map(int, file.readline().split(","))
+            # Read all points from one line (the order is start, goal, and checkpoints)
+            points = list(map(int, file.readline().split(",")))
+            sx, sy, gx, gy = points[:4]
             self.setCellValue(sx, sy, MATRIX_CODE["start"])
             self.setCellValue(gx, gy, MATRIX_CODE["goal"])
             self.start_point = (sx, sy)
             self.goal_point = (gx, gy)
+
+            self.checkpoints = [(points[i], points[i + 1]) for i in range(4, len(points), 2)]
+            for x, y in self.checkpoints:
+                self.setCellValue(x, y, MATRIX_CODE["checkpoint"])
 
             for i in range(n):
                 self.setCellValue(i, 0, MATRIX_CODE["edge"])
@@ -185,7 +195,7 @@ class SearchBoard:
         x = point[0]
         y = point[1]
         if self.is_valid_point(point):
-            if(self.matrix[y][x] == MATRIX_CODE["empty"] or self.matrix[y][x] == MATRIX_CODE["goal"] or self.matrix[y][x] == MATRIX_CODE["start"]):
+            if(self.matrix[y][x] == MATRIX_CODE["empty"] or self.matrix[y][x] == MATRIX_CODE["goal"] or self.matrix[y][x] == MATRIX_CODE["start"] or self.matrix[y][x] == MATRIX_CODE["checkpoint"] or self.matrix[y][x] == MATRIX_CODE["visited"] or self.matrix[y][x] == MATRIX_CODE["path"]):
                 return True
         return False
     def get_vertex_neighbours(self, point):
@@ -364,6 +374,129 @@ class SearchBoard:
 
         return None, None, None
 
+    def a_star_alternative(self, start_point, goal_point):
+        G = {}
+        F = {}
+
+        # Initialize starting values
+        G[start_point] = 0
+        F[start_point] = self.heuristic(start_point, goal_point)
+
+        closedVertices = set()
+        openVertices = set([start_point])
+        cameFrom = {}
+
+        while len(openVertices) > 0:
+            # Get the vertex in the open list with the lowest F score
+            current = None
+            currentFscore = None
+            for pos in openVertices:
+                if current is None or F[pos] < currentFscore:
+                    currentFscore = F[pos]
+                    current = pos
+
+            # Check if we have reached the goal
+            if current == goal_point:
+                # Retrace our route backward
+                path = [current]
+                while current in cameFrom:
+                    current = cameFrom[current]
+                    path.append(current)
+                path.reverse()
+                return path, len(path) - 1, len(closedVertices)
+
+                # Mark the current vertex as closed
+            openVertices.remove(current)
+            self.draw_progress([(current[0], current[1])])
+            closedVertices.add(current)
+
+            # Update scores for vertices near the current point
+            for neighbour in self.get_vertex_neighbours(current):
+                if neighbour in closedVertices:
+                    continue  # We have already processed this node exhaustively
+                candidateG = G[current] + 1
+                candidateH = self.heuristic(neighbour, goal_point)
+                candidateF = candidateG + candidateH
+                if neighbour not in openVertices:
+                    openVertices.add(neighbour)  # Discovered a new vertex
+                elif candidateF >= F[neighbour]:
+                    continue
+
+                cameFrom[neighbour] = current
+                G[neighbour] = candidateG
+                H = self.heuristic(neighbour, goal_point)
+                F[neighbour] = G[neighbour] + H
+
+        return None, None, None
+
+    def a_star_with_checkpoints(self):
+        checkpoints = self.checkpoints
+        points = [self.start_point] + checkpoints + [self.goal_point]
+        # Initialize adjacency matrix to store the cost of the path between each pair of points
+        adjacency_matrix = [[float('inf') for _ in range(len(points))] for _ in range(len(points))]
+        # Initialize path matrix
+        path_matrix = [[None for _ in range(len(points))] for _ in range(len(points))]
+
+        total_visited = 0
+        # Calculate the cost of the path from each pair of points
+        for i in range(len(points)-1):
+            for j in range(i + 1, len(points)):
+                # Skip finding the path between the start and goal points
+                if i == 0 and j == len(points) - 1:
+                    continue
+
+                path, cost, visited = self.a_star_alternative(points[i], points[j])
+                if path is None:
+                    return None, None, None
+                self.start()
+                search_board.canvas.after(0, search_board.draw_path(path))
+
+                total_visited += visited
+                adjacency_matrix[i][j] = adjacency_matrix[j][i] = cost
+                path_matrix[i][j] = path
+                path_matrix[j][i] = path[::-1]
+
+        self.start()
+
+        # Adjusting the adjacency matrix: cost from all checkpoints to the start is infinity, and cost from goal to all checkpoints is infinity
+        for i in range(1, len(points) - 1):
+            adjacency_matrix[i][0] = float('inf')
+            adjacency_matrix[-1][i] = float('inf')
+        adjacency_matrix[-1][0] = 0
+
+        # Solve the Traveling Salesman Problem using dynamic programming
+        class TSP:
+            def __init__(self):
+                self.optimal_path = []
+                self.optimal_cost = float('inf')
+                self.visited_points = [False] * len(points)
+                self.checkpoints = checkpoints
+
+                self.current_path = [0] * len(points)
+                self.visited_points[0] = True
+            def solve_tsp(self):
+                checkpoint_indexes = [i for i in range(1, len(points) - 1)]
+                for perm in permutations(checkpoint_indexes):
+                    current_cost = 0
+                    current = 0
+                    for i in range(len(perm)):
+                        current_cost += adjacency_matrix[current][perm[i]]
+                        current = perm[i]
+                    current_cost += adjacency_matrix[current][-1]
+                    if current_cost < self.optimal_cost:
+                        self.optimal_cost = current_cost
+                        self.optimal_path = [0] + list(perm) + [len(points) - 1]
+
+        tsp = TSP()
+        tsp.solve_tsp()
+        path = tsp.optimal_path
+        cost = tsp.optimal_cost
+        # Get the final path
+        final_path = []
+        for i in range(len(path)-1):
+            final_path += path_matrix[path[i]][path[i + 1]]
+        return final_path, cost, total_visited
+
     def draw_progress(self, progress: list[tuple[int, int]]) -> None:
         for x, y in progress:
             self.setCellValue(x, y, MATRIX_CODE["visited"])
@@ -396,13 +529,14 @@ def start_algorithm():
     algo_map = {
         0: search_board.bfs,
         1: search_board.gbfs,
-        2: search_board.a_star
+        2: search_board.a_star,
+        3: search_board.a_star_with_checkpoints
     }
 
     algo_func = algo_map[selected_alg_idx.get()]
 
     search_board.start()
-    (path, cost, visited) = algo_func();
+    (path, cost, visited) = algo_func()
 
     result.pack(pady=(20, 8))
 
